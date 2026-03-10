@@ -194,4 +194,323 @@ def build_html(item):
 <style>
 body {{
   margin: 0;
-  pad
+  padding: 0;
+  font-family: "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+  background: #f3f3f3;
+}}
+
+.page {{
+  padding: 14px 0 18px 0;
+  background: #f3f3f3;
+}}
+
+.wrap {{
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 12px;
+}}
+
+.hero-card,
+.content-card,
+.footer-card {{
+  background: #ffffff;
+  border: 1px solid #e7e7e7;
+  border-radius: 16px;
+  padding: 18px 16px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}}
+
+.title {{
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  line-height: 1.32;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #1b1b1b;
+}}
+
+.meta {{
+  font-size: 12px;
+  line-height: 18px;
+  color: #666666;
+  margin-bottom: 12px;
+}}
+
+.hero-body:empty {{
+  display: none;
+}}
+
+.section-block {{
+  margin: 0;
+}}
+
+.section-title {{
+  margin: 0 0 10px 0;
+  font-size: 20px;
+  line-height: 1.4;
+  font-weight: 700;
+  color: #1b1b1b;
+}}
+
+.section-divider {{
+  height: 1px;
+  background: #ececec;
+  margin: 16px 0;
+}}
+
+.content-body {{
+  font-size: 15px;
+  line-height: 1.82;
+  color: #2f2f2f;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}}
+
+.footer {{
+  font-size: 12px;
+  line-height: 18px;
+  color: #6a6a6a;
+}}
+
+img {{
+  max-width: 100% !important;
+  height: auto !important;
+  display: block;
+  border-radius: 10px;
+  margin: 12px 0;
+}}
+
+table {{
+  width: 100% !important;
+  max-width: 100% !important;
+  border-collapse: collapse !important;
+  table-layout: fixed !important;
+}}
+
+pre {{
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+  overflow-x: auto !important;
+  background: #f7f7f7 !important;
+  border: 1px solid #e6e6e6 !important;
+  border-radius: 10px !important;
+  padding: 12px !important;
+  font-size: 13px !important;
+  line-height: 1.7 !important;
+}}
+
+code {{
+  word-break: break-word !important;
+  font-family: Consolas, "Courier New", monospace !important;
+}}
+
+blockquote {{
+  margin: 12px 0 !important;
+  padding: 6px 0 6px 12px !important;
+  border-left: 3px solid #b9d6f2 !important;
+  color: #5d5d5d !important;
+}}
+
+p {{
+  margin: 0 0 0.95em 0 !important;
+}}
+
+h1, h2, h3, h4, h5, h6 {{
+  color: #1b1b1b !important;
+  line-height: 1.42 !important;
+  margin-top: 1.15em !important;
+  margin-bottom: 0.55em !important;
+}}
+
+a {{
+  color: #0b57a3 !important;
+  text-decoration: none !important;
+  word-break: break-word !important;
+}}
+
+hr {{
+  border: none !important;
+  border-top: 1px solid #e6e6e6 !important;
+  margin: 18px 0 !important;
+}}
+
+ul, ol {{
+  padding-left: 1.3em !important;
+  margin: 0 0 0.95em 0 !important;
+}}
+
+li {{
+  margin-bottom: 0.35em !important;
+}}
+
+@media (prefers-color-scheme: dark) {{
+  body {{
+    background: #0b0f14 !important;
+  }}
+
+  .page {{
+    background: #0f141b !important;
+  }}
+
+  .hero-card,
+  .content-card,
+  .footer-card {{
+    background: #1b232d !important;
+    border: 1px solid #2c3642 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24) !important;
+  }}
+
+  .title,
+  .section-title {{
+    color: #f5f7fa !important;
+  }}
+
+  .meta {{
+    color: #aab4c0 !important;
+  }}
+
+  .section-divider {{
+    background: #2c3642 !important;
+  }}
+
+  .content-body {{
+    color: #dce3ea !important;
+  }}
+
+  .footer {{
+    color: #97a3af !important;
+  }}
+
+  pre {{
+    background: #111720 !important;
+    border-color: #2c3642 !important;
+    color: #dce3ea !important;
+  }}
+
+  blockquote {{
+    border-left-color: #4f89c6 !important;
+    color: #b9c3cf !important;
+  }}
+
+  h1, h2, h3, h4, h5, h6 {{
+    color: #f5f7fa !important;
+  }}
+
+  a {{
+    color: #8ec5ff !important;
+  }}
+
+  hr {{
+    border-top-color: #2c3642 !important;
+  }}
+}}
+
+@media screen and (max-width: 600px) {{
+  .page {{
+    padding: 10px 0 14px 0;
+  }}
+
+  .wrap {{
+    padding: 0 8px;
+  }}
+
+  .hero-card,
+  .content-card,
+  .footer-card {{
+    border-radius: 12px;
+    padding: 14px 12px;
+    margin-bottom: 8px;
+  }}
+
+  .title {{
+    font-size: 21px;
+    line-height: 1.34;
+  }}
+
+  .section-title {{
+    font-size: 18px;
+  }}
+
+  .content-body {{
+    font-size: 15px;
+    line-height: 1.78;
+  }}
+
+  .section-divider {{
+    margin: 14px 0;
+  }}
+}}
+</style>
+""".strip()
+
+
+def send_email(item):
+    subject = f"阮一峰更新｜{item['title']}"
+    html_body = build_html(item)
+    text_body = f"""{item['title']}
+
+发布时间：{item['published']}
+
+{item['summary_text']}
+
+原文：
+{item['link']}
+"""
+
+    from_email = FROM_EMAIL.strip()
+    from_name = FROM_NAME.strip()
+
+    if "<" in from_email or ">" in from_email:
+        from_value = from_email
+    elif from_name:
+        from_value = f"{from_name} <{from_email}>"
+    else:
+        from_value = from_email
+
+    payload = {
+        "from": from_value,
+        "to": [TO_EMAIL],
+        "subject": subject,
+        "html": html_body,
+        "text": text_body
+    }
+
+    resp = requests.post(
+        "https://api.resend.com/emails",
+        headers={
+            "Authorization": f"Bearer {RESEND_API_KEY}",
+            "Content-Type": "application/json"
+        },
+        json=payload,
+        timeout=30
+    )
+
+    print(f"Resend response: {resp.status_code} {resp.text}")
+
+    if not resp.ok:
+        raise RuntimeError(f"Resend 发信失败: {resp.status_code} {resp.text}")
+
+
+def main():
+    latest = fetch_latest_item()
+    state = load_state()
+
+    if not latest["link"]:
+        print("No link found.")
+        return 1
+
+    if not FORCE_SEND and latest["link"] == state.get("last_link"):
+        print("No new item.")
+        return 0
+
+    send_email(latest)
+    save_state({"last_link": latest["link"]})
+    print("Email sent and state updated.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
