@@ -1,8 +1,8 @@
-# ruanyifeng-outlook-rss
+# ruanyifeng-email-rss
 
 <p align="center">
   <img src="https://img.icons8.com/?size=100&id=SLyEErG3AwF8&format=png&color=000000" width="120">
-</p>一个自动化工具，用于 将阮一峰周刊 RSS 转换为高可读性的邮件，并发送到 Outlook 邮箱。
+</p>一个自动化工具，用于 将阮一峰周刊 RSS 转换为高可读性的邮件，并发送到 Email 邮箱。
 
 邮件内容为 完整 RSS 正文，并自动按照文章中的 h2 标题拆分为多张卡片，使阅读体验更接近博客或文章页面。
 
@@ -26,7 +26,7 @@
 内容卡片 2（h2）
 内容卡片 3（h2）
 
-🖥 Outlook 阅读体验优化
+🖥 Email 阅读体验优化
 
 Windows 11 风格卡片布局
 
@@ -55,11 +55,11 @@ Windows 11 风格卡片布局
 
 🏗 项目结构
 
-ruanyifeng-outlook-rss
+ruanyifeng-email-rss
 │
 ├─ .github
 │  └─ workflows
-│     └─ rss-outlook.yml
+│     └─ rss-email.yml
 │
 ├─ scripts
 │  └─ rss_to_email.py
@@ -93,7 +93,7 @@ GitHub Actions
 Resend API 发送
       │
       ▼
-Outlook 收件
+Email 收件
 
 
 ---
@@ -117,7 +117,7 @@ GitHub Actions 每周五运行两次：
 在 GitHub：
 
 Actions
-→ RSS to Outlook
+→ RSS to Email
 → Run workflow
 
 手动运行时会：
