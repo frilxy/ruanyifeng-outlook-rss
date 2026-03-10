@@ -14,6 +14,7 @@ RESEND_API_KEY = os.environ["RESEND_API_KEY"]
 TO_EMAIL = os.environ["TO_EMAIL"]
 FROM_EMAIL = os.environ["FROM_EMAIL"]
 FROM_NAME = os.environ.get("FROM_NAME", "RSS Bot")
+FORCE_SEND = os.environ.get("FORCE_SEND", "false").lower() == "true"
 
 
 def strip_html(html: str) -> str:
@@ -149,6 +150,8 @@ def send_email(item: dict) -> None:
         timeout=30,
     )
 
+    print(f"Resend response: {resp.status_code} {resp.text}")
+
     if not resp.ok:
         raise RuntimeError(f"Resend 发信失败: {resp.status_code} {resp.text}")
 
@@ -161,7 +164,7 @@ def main() -> int:
         print("No link found.")
         return 1
 
-    if latest["link"] == state.get("last_link", ""):
+    if not FORCE_SEND and latest["link"] == state.get("last_link", ""):
         print("No new item.")
         return 0
 
