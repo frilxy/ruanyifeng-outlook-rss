@@ -1,24 +1,31 @@
 import json
 import os
 import re
+import smtplib
+import ssl
 import sys
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from pathlib import Path
-from xml.etree import ElementTree as ET
 
-import requests
+import feedparser
 
 
 FEED_URL = "https://feeds.feedburner.com/ruanyifeng"
 STATE_FILE = Path("data/last_sent.json")
 
-RESEND_API_KEY = os.environ["RESEND_API_KEY"]
-TO_EMAIL = os.environ["TO_EMAIL"]
+SMTP_SERVER = "smtp-mail.outlook.com"
+SMTP_PORT = 587
 
-# 这里改成你在 Resend 中可用的发件地址
-FROM_EMAIL = os.environ.get("FROM_EMAIL", "RSS Bot <onboarding@resend.dev>")
+OUTLOOK_EMAIL = os.environ["OUTLOOK_EMAIL"]
+OUTLOOK_APP_PASSWORD = os.environ["OUTLOOK_APP_PASSWORD"]
+TO_EMAIL = os.environ["TO_EMAIL"]
+FROM_NAME = os.environ.get("FROM_NAME", "RSS Bot")
 
 
 def strip_html(html: str) -> str:
+    if not html:
+        return ""
     html = re.sub(r"<script[\s\S]*?</script>", "", html, flags=re.I)
     html = re.sub(r"<style[\s\S]*?</style>", "", html, flags=re.I)
     text = re.sub(r"<[^>]+>", "", html)
@@ -34,36 +41,34 @@ def load_state() -> dict:
 
 def save_state(state: dict) -> None:
     STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    STATE_FILE.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+    STATE_FILE.write_text(
+        json.dumps(state, ensure_ascii=False, indent=2),
+        encoding="utf-8"
+    )
 
 
 def fetch_latest_item() -> dict:
-    resp = requests.get(FEED_URL, timeout=30)
-    resp.raise_for_status()
+    feed = feedparser.parse(FEED_URL)
 
-    root = ET.fromstring(resp.content)
+    if not feed.entries:
+        raise RuntimeError("RSS 解析失败：没有读取到条目")
 
-    channel = root.find("channel")
-    if channel is None:
-        raise RuntimeError("RSS 解析失败：未找到 channel")
+    entry = feed.entries[0]
 
-    item = channel.find("item")
-    if item is None:
-        raise RuntimeError("RSS 解析失败：未找到 item")
+    title = entry.get("title", "(无标题)").strip()
+    link = entry.get("link", "").strip()
+    published = entry.get("published", "").strip()
 
-    title = item.findtext("title", default="(无标题)").strip()
-    link = item.findtext("link", default="").strip()
-    pub_date = item.findtext("pubDate", default="").strip()
-    description = item.findtext("description", default="").strip()
+    summary_html = entry.get("summary", "") or entry.get("description", "")
+    summary = strip_html(summary_html)
 
-    summary = strip_html(description)
-    if len(summary) > 280:
-        summary = summary[:280].rstrip() + "…"
+    if len(summary) > 320:
+        summary = summary[:320].rstrip() + "…"
 
     return {
         "title": title,
         "link": link,
-        "pub_date": pub_date,
+        "published": published,
         "summary": summary,
     }
 
@@ -71,7 +76,7 @@ def fetch_latest_item() -> dict:
 def build_html(item: dict) -> str:
     title = item["title"]
     link = item["link"]
-    pub_date = item["pub_date"]
+    published = item["published"]
     summary = item["summary"]
 
     return f"""
@@ -79,7 +84,7 @@ def build_html(item: dict) -> str:
   <div style="max-width:720px;margin:0 auto;padding:24px 16px;">
     <div style="background:#ffffff;border-radius:16px;padding:28px 24px;border:1px solid #e8edf3;">
       <div style="font-size:12px;line-height:18px;color:#667085;margin-bottom:10px;">
-        阮一峰博客 RSS 更新
+        阮一峰周刊 RSS 更新
       </div>
 
       <h1 style="margin:0 0 12px 0;font-size:26px;line-height:1.35;color:#101828;font-weight:700;">
@@ -87,7 +92,7 @@ def build_html(item: dict) -> str:
       </h1>
 
       <div style="font-size:13px;line-height:20px;color:#667085;margin-bottom:20px;">
-        发布时间：{pub_date}
+        发布时间：{published}
       </div>
 
       <div style="margin-bottom:22px;">
@@ -105,7 +110,7 @@ def build_html(item: dict) -> str:
       <hr style="border:none;border-top:1px solid #eaecf0;margin:28px 0;">
 
       <div style="font-size:12px;line-height:20px;color:#667085;">
-        这封邮件由 GitHub Actions 自动发送。<br>
+        这封邮件由 GitHub Actions 自动发送到 Outlook。<br>
         RSS 地址：{FEED_URL}
       </div>
     </div>
@@ -116,44 +121,41 @@ def build_html(item: dict) -> str:
 
 def send_email(item: dict) -> None:
     subject = f"阮一峰更新｜{item['title']}"
-    html = build_html(item)
+    html_body = build_html(item)
 
-    payload = {
-        "from": FROM_EMAIL,
-        "to": [TO_EMAIL],
-        "subject": subject,
-        "html": html,
-    }
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"] = f"{FROM_NAME} <{OUTLOOK_EMAIL}>"
+    msg["To"] = TO_EMAIL
 
-    resp = requests.post(
-        "https://api.resend.com/emails",
-        headers={
-            "Authorization": f"Bearer {RESEND_API_KEY}",
-            "Content-Type": "application/json",
-        },
-        json=payload,
-        timeout=30,
-    )
-    resp.raise_for_status()
-    print("Email sent:", resp.text)
+    text_body = f"{item['title']}\n\n发布时间：{item['published']}\n\n摘要：{item['summary']}\n\n原文链接：{item['link']}"
+    msg.attach(MIMEText(text_body, "plain", "utf-8"))
+    msg.attach(MIMEText(html_body, "html", "utf-8"))
+
+    context = ssl.create_default_context()
+    with smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=30) as server:
+        server.ehlo()
+        server.starttls(context=context)
+        server.ehlo()
+        server.login(OUTLOOK_EMAIL, OUTLOOK_APP_PASSWORD)
+        server.sendmail(OUTLOOK_EMAIL, [TO_EMAIL], msg.as_string())
 
 
 def main() -> int:
     latest = fetch_latest_item()
     state = load_state()
-    last_link = state.get("last_link", "")
 
     if not latest["link"]:
-        print("No link found in feed.")
+        print("No link found.")
         return 1
 
-    if latest["link"] == last_link:
+    if latest["link"] == state.get("last_link", ""):
         print("No new item.")
         return 0
 
     send_email(latest)
     save_state({"last_link": latest["link"]})
-    print("State updated.")
+    print("Email sent and state updated.")
     return 0
 
 
