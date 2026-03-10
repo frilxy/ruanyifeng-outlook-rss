@@ -1,0 +1,44 @@
+name: RSS to Outlook SMTP
+
+on:
+  schedule:
+    # 每周五多检查几次，避免 GitHub 定时触发有轻微漂移
+    - cron: "0 1 * * 5"
+    - cron: "0 4 * * 5"
+    - cron: "0 8 * * 5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  send-rss-email:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run mailer
+        env:
+          OUTLOOK_EMAIL: ${{ secrets.OUTLOOK_EMAIL }}
+          OUTLOOK_APP_PASSWORD: ${{ secrets.OUTLOOK_APP_PASSWORD }}
+          TO_EMAIL: ${{ secrets.TO_EMAIL }}
+          FROM_NAME: ${{ secrets.FROM_NAME }}
+        run: python scripts/rss_to_email.py
+
+      - name: Commit updated state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/last_sent.json
+          git diff --cached --quiet || git commit -m "Update RSS state"
+          git push
