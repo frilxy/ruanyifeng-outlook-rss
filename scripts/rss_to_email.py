@@ -50,26 +50,34 @@ def fetch_latest_item() -> dict:
     link = entry.get("link", "").strip()
     published = entry.get("published", "").strip()
 
-    summary_html = entry.get("summary", "") or entry.get("description", "")
-    summary = strip_html(summary_html)
-    if len(summary) > 320:
-        summary = summary[:320].rstrip() + "…"
+    content_html = ""
+
+    if entry.get("content") and isinstance(entry.get("content"), list):
+        content_html = entry["content"][0].get("value", "") or ""
+
+    if not content_html:
+        content_html = entry.get("summary", "") or entry.get("description", "") or ""
+
+    summary_text = strip_html(content_html)
 
     return {
         "title": title,
         "link": link,
         "published": published,
-        "summary": summary,
+        "content_html": content_html,
+        "summary_text": summary_text,
     }
 
 
 def build_html(item: dict) -> str:
+    content_html = item["content_html"]
+
     return f"""
-<div style="margin:0;padding:0;background:#f6f8fb;">
-  <div style="max-width:720px;margin:0 auto;padding:24px 16px;">
-    <div style="background:#ffffff;border-radius:16px;padding:28px 24px;border:1px solid #e8edf3;">
+<div style="margin:0;padding:24px 0;background:#f6f8fb;">
+  <div style="max-width:720px;margin:0 auto;padding:0 16px;">
+    <div style="background:#ffffff;border:1px solid #e8edf3;border-radius:16px;padding:28px 24px;">
       <div style="font-size:12px;line-height:18px;color:#667085;margin-bottom:10px;">
-        阮一峰周刊 RSS 更新
+        阮一峰周刊 RSS 全文更新
       </div>
 
       <h1 style="margin:0 0 12px 0;font-size:26px;line-height:1.35;color:#101828;font-weight:700;">
@@ -82,14 +90,13 @@ def build_html(item: dict) -> str:
 
       <div style="margin-bottom:22px;">
         <a href="{item["link"]}"
-           style="display:inline-block;background:#111827;color:#ffffff;text-decoration:none;
-                  padding:10px 16px;border-radius:10px;font-size:14px;">
+           style="display:inline-block;background:#111827;color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:10px;font-size:14px;">
           阅读原文
         </a>
       </div>
 
-      <div style="font-size:16px;line-height:1.8;color:#344054;">
-        {item["summary"]}
+      <div style="font-size:16px;line-height:1.8;color:#344054;word-break:break-word;">
+        {content_html}
       </div>
 
       <hr style="border:none;border-top:1px solid #eaecf0;margin:28px 0;">
@@ -110,12 +117,22 @@ def send_email(item: dict) -> None:
     text_body = (
         f"{item['title']}\n\n"
         f"发布时间：{item['published']}\n\n"
-        f"摘要：{item['summary']}\n\n"
+        f"{item['summary_text']}\n\n"
         f"原文链接：{item['link']}"
     )
 
+    from_email = FROM_EMAIL.strip()
+    from_name = FROM_NAME.strip()
+
+    if "<" in from_email or ">" in from_email:
+        from_value = from_email
+    elif from_name:
+        from_value = f"{from_name} <{from_email}>"
+    else:
+        from_value = from_email
+
     payload = {
-        "from": f"{FROM_NAME} <{FROM_EMAIL}>",
+        "from": from_value,
         "to": [TO_EMAIL],
         "subject": subject,
         "html": html_body,
