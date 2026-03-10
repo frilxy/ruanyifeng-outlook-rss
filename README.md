@@ -69,6 +69,7 @@ GitHub Actions 每周自动检查 RSS 更新并发送邮件。
 
 🏗 项目结构
 
+```
 ruanyifeng-rss-email
 │
 ├─ .github
@@ -83,12 +84,13 @@ ruanyifeng-rss-email
 │
 ├─ requirements.txt
 └─ README.md
-
+```
 
 ---
 
 ⚙️ 工作原理
 
+```
 GitHub Actions
       │
       ▼
@@ -105,7 +107,7 @@ Resend API 发送
       │
       ▼
 Email 客户端接收
-
+```
 
 ---
 
@@ -150,23 +152,23 @@ Settings
 
 添加以下变量：
 
-Name	说明
-
-RESEND_API_KEY	Resend API Key
-FROM_EMAIL	发信邮箱
-FROM_NAME	发信名称
-TO_EMAIL	收件邮箱
-
+| Name | 说明 |
+| ------------- | ------------- |
+| RESEND_API_KEY | Resend API Key |
+| FROM_EMAIL | 发信邮箱 |
+| FROM_NAME | 发信名称 |
+| TO_EMAIL | 收件邮箱 |
 
 
 ---
 
 📦 依赖
 
+```
 feedparser
 requests
 beautifulsoup4
-
+```
 
 ---
 
