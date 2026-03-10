@@ -2,15 +2,12 @@ name: RSS to Outlook via Resend
 
 on:
   schedule:
-    - cron: "0 1 * * 5"
+    # 周五中午检查
     - cron: "0 4 * * 5"
-    - cron: "0 8 * * 5"
+    # 周五晚上再检查一次
+    - cron: "0 10 * * 5"
+
   workflow_dispatch:
-    inputs:
-      force_send:
-        description: "是否强制发送最新一篇"
-        required: false
-        default: "false"
 
 concurrency:
   group: ruanyifeng-rss-state
@@ -43,7 +40,7 @@ jobs:
           TO_EMAIL: ${{ secrets.TO_EMAIL }}
           FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
           FROM_NAME: ${{ secrets.FROM_NAME }}
-          FORCE_SEND: ${{ github.event.inputs.force_send || 'false' }}
+          FORCE_SEND: ${{ github.event_name == 'workflow_dispatch' }}
         run: python scripts/rss_to_email.py
 
       - name: Commit updated state
