@@ -76,11 +76,7 @@ def build_html(item: dict) -> str:
     return f"""
 <div style="margin:0;padding:24px 0;background:#f6f8fb;">
   <div style="max-width:720px;margin:0 auto;padding:0 16px;">
-    <div style="background:#ffffff;border:1px solid #e8edf3;border-radius:16px;padding:28px 24px;">
-      <div style="font-size:12px;line-height:18px;color:#667085;margin-bottom:10px;">
-        阮一峰周刊 RSS 全文更新
-      </div>
-
+    <div style="background:#ffffff;border:1px solid #e8edf3;border-radius:16px;padding:28px 24px;overflow:hidden;">
       <h1 style="margin:0 0 12px 0;font-size:26px;line-height:1.35;color:#101828;font-weight:700;">
         {item["title"]}
       </h1>
@@ -89,14 +85,7 @@ def build_html(item: dict) -> str:
         发布时间：{item["published"]}
       </div>
 
-      <div style="margin-bottom:22px;">
-        <a href="{item["link"]}"
-           style="display:inline-block;background:#111827;color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:10px;font-size:14px;">
-          阅读原文
-        </a>
-      </div>
-
-      <div style="font-size:16px;line-height:1.8;color:#344054;word-break:break-word;">
+      <div style="font-size:16px;line-height:1.8;color:#344054;word-break:break-word;overflow-wrap:break-word;">
         {content_html}
       </div>
 
@@ -109,8 +98,29 @@ def build_html(item: dict) -> str:
     </div>
   </div>
 </div>
+<style>
+  img {{
+    max-width: 100% !important;
+    height: auto !important;
+    display: block;
+  }}
+  table {{
+    max-width: 100% !important;
+    width: 100% !important;
+  }}
+  pre {{
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+    overflow-x: auto !important;
+  }}
+  code {{
+    word-break: break-word !important;
+  }}
+  a {{
+    word-break: break-word !important;
+  }}
+</style>
 """.strip()
-
 
 def send_email(item: dict) -> None:
     subject = f"阮一峰更新｜{item['title']}"
