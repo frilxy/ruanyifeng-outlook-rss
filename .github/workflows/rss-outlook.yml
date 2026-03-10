@@ -1,8 +1,7 @@
-name: RSS to Outlook SMTP
+name: RSS to Outlook via Resend
 
 on:
   schedule:
-    # 每周五多检查几次，避免 GitHub 定时触发有轻微漂移
     - cron: "0 1 * * 5"
     - cron: "0 4 * * 5"
     - cron: "0 8 * * 5"
@@ -29,9 +28,9 @@ jobs:
 
       - name: Run mailer
         env:
-          OUTLOOK_EMAIL: ${{ secrets.OUTLOOK_EMAIL }}
-          OUTLOOK_APP_PASSWORD: ${{ secrets.OUTLOOK_APP_PASSWORD }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           TO_EMAIL: ${{ secrets.TO_EMAIL }}
+          FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
           FROM_NAME: ${{ secrets.FROM_NAME }}
         run: python scripts/rss_to_email.py
 
