@@ -78,8 +78,6 @@ def build_html(item: dict) -> str:
   <div class="container">
     <div class="card">
 
-      <div class="tag">RSS 更新</div>
-
       <h1 class="title">
         {item["title"]}
       </h1>
@@ -106,148 +104,221 @@ def build_html(item: dict) -> str:
 </div>
 
 <style>
-
 body {{
-  margin:0;
-  padding:0;
-  font-family:"Segoe UI","Microsoft YaHei",Arial,sans-serif;
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", Arial, sans-serif;
+  background: #f3f3f3;
 }}
 
 .bg {{
-  background:#f3f2f1;
-  padding:32px 0;
+  padding: 36px 0;
+  background:
+    radial-gradient(circle at top left, #f8fbff 0%, #f3f3f3 42%, #efefef 100%);
 }}
 
 .container {{
-  max-width:760px;
-  margin:auto;
-  padding:0 16px;
+  max-width: 780px;
+  margin: auto;
+  padding: 0 18px;
 }}
 
 .card {{
-  background:#ffffff;
-  border:1px solid #edebe9;
-  border-radius:20px;
-  padding:32px 28px;
-}}
-
-.tag {{
-  display:inline-block;
-  font-size:12px;
-  color:#605e5c;
-  background:#f3f2f1;
-  border:1px solid #edebe9;
-  border-radius:999px;
-  padding:4px 10px;
-  margin-bottom:16px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(250,250,250,0.96) 100%);
+  border: 1px solid rgba(255,255,255,0.72);
+  border-radius: 24px;
+  padding: 34px 30px;
+  overflow: hidden;
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.04),
+    0 8px 28px rgba(0,0,0,0.08);
 }}
 
 .title {{
-  margin:0 0 10px 0;
-  font-size:30px;
-  font-weight:700;
-  color:#201f1e;
+  margin: 0 0 10px 0;
+  font-size: 31px;
+  line-height: 1.28;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #1f1f1f;
 }}
 
 .meta {{
-  font-size:13px;
-  color:#605e5c;
-  margin-bottom:28px;
+  font-size: 13px;
+  line-height: 20px;
+  color: #5f5f5f;
+  margin-bottom: 28px;
 }}
 
 .divider {{
-  height:1px;
-  background:#edebe9;
-  margin-bottom:28px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(0,0,0,0.04), rgba(0,0,0,0.08), rgba(0,0,0,0.04));
+  margin-bottom: 28px;
 }}
 
 .content {{
-  font-size:16px;
-  line-height:1.9;
-  color:#323130;
+  font-size: 16px;
+  line-height: 1.9;
+  color: #2d2d2d;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }}
 
 .footer-divider {{
-  height:1px;
-  background:#edebe9;
-  margin:32px 0 20px 0;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(0,0,0,0.04), rgba(0,0,0,0.08), rgba(0,0,0,0.04));
+  margin: 34px 0 20px 0;
 }}
 
 .footer {{
-  font-size:12px;
-  color:#605e5c;
+  font-size: 12px;
+  line-height: 20px;
+  color: #6b6b6b;
 }}
 
 img {{
-  max-width:100% !important;
-  height:auto !important;
-  border-radius:10px;
+  max-width: 100% !important;
+  height: auto !important;
+  display: block;
+  border-radius: 16px;
+  margin: 16px 0;
+}}
+
+table {{
+  max-width: 100% !important;
+  width: 100% !important;
+  border-collapse: collapse !important;
+  background: rgba(255,255,255,0.6);
+  border-radius: 14px;
+  overflow: hidden;
 }}
 
 pre {{
-  background:#f8f8f8;
-  border:1px solid #edebe9;
-  border-radius:12px;
-  padding:14px;
-  overflow:auto;
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+  overflow-x: auto !important;
+  background: rgba(248,248,248,0.92) !important;
+  border: 1px solid rgba(0,0,0,0.06) !important;
+  border-radius: 16px !important;
+  padding: 16px !important;
+  font-size: 14px !important;
+  line-height: 1.75 !important;
+}}
+
+code {{
+  word-break: break-word !important;
+  font-family: Consolas, "Courier New", monospace !important;
 }}
 
 blockquote {{
-  border-left:3px solid #c8c6c4;
-  padding-left:12px;
-  color:#605e5c;
+  margin: 16px 0 !important;
+  padding: 10px 0 10px 16px !important;
+  border-left: 3px solid rgba(0,120,212,0.32) !important;
+  color: #5a5a5a !important;
+  background: transparent !important;
+}}
+
+p {{
+  margin: 0 0 1.1em 0 !important;
+}}
+
+h1, h2, h3, h4, h5, h6 {{
+  color: #1f1f1f !important;
+  line-height: 1.45 !important;
+  margin-top: 1.35em !important;
+  margin-bottom: 0.7em !important;
 }}
 
 a {{
-  color:#0f6cbd;
-  text-decoration:none;
+  color: #005fb8 !important;
+  text-decoration: none !important;
+  word-break: break-word !important;
+}}
+
+hr {{
+  border: none !important;
+  border-top: 1px solid rgba(0,0,0,0.08) !important;
+  margin: 24px 0 !important;
+}}
+
+ul, ol {{
+  padding-left: 1.4em !important;
+  margin: 0 0 1.1em 0 !important;
+}}
+
+li {{
+  margin-bottom: 0.45em !important;
 }}
 
 @media (prefers-color-scheme: dark) {{
+  body {{
+    background: #0f1114;
+  }}
 
   .bg {{
-    background:#1b1a19;
+    background:
+      radial-gradient(circle at top left, #1d2430 0%, #111318 40%, #0f1114 100%);
   }}
 
   .card {{
-    background:#252423;
-    border-color:#3b3a39;
-  }}
-
-  .tag {{
-    background:#323130;
-    border-color:#3b3a39;
-    color:#d2d0ce;
+    background:
+      linear-gradient(180deg, rgba(36,40,48,0.92) 0%, rgba(27,30,36,0.96) 100%);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow:
+      0 1px 2px rgba(0,0,0,0.25),
+      0 14px 36px rgba(0,0,0,0.32);
   }}
 
   .title {{
-    color:#ffffff;
+    color: #f5f5f5;
   }}
 
   .meta {{
-    color:#c8c6c4;
+    color: #b8b8b8;
   }}
 
   .content {{
-    color:#f3f2f1;
+    color: #e5e5e5;
   }}
 
   .divider,
   .footer-divider {{
-    background:#3b3a39;
+    background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.10), rgba(255,255,255,0.04));
   }}
 
   .footer {{
-    color:#c8c6c4;
+    color: #a7a7a7;
   }}
 
   pre {{
-    background:#1f1f1f;
-    border-color:#3b3a39;
+    background: rgba(17,20,26,0.96) !important;
+    border-color: rgba(255,255,255,0.08) !important;
+    color: #e5e5e5 !important;
   }}
 
-}}
+  blockquote {{
+    border-left-color: rgba(122,184,255,0.45) !important;
+    color: #c6c6c6 !important;
+  }}
 
+  h1, h2, h3, h4, h5, h6 {{
+    color: #f5f5f5 !important;
+  }}
+
+  a {{
+    color: #8cc8ff !important;
+  }}
+
+  hr {{
+    border-top-color: rgba(255,255,255,0.08) !important;
+  }}
+
+  table {{
+    background: rgba(255,255,255,0.02) !important;
+  }}
+}}
 </style>
 """.strip()
 
