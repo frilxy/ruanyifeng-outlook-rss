@@ -77,15 +77,10 @@ def normalize_content_html(content_html: str) -> str:
     for tag in soup(["script", "style"]):
         tag.decompose()
 
-    # 删除正文里可能重复出现的 h1，避免和邮件主标题冲突
+    # RSS 正文里通常会包含与邮件头重复的 h1，这里删掉第一项即可
     first_h1 = soup.find("h1")
     if first_h1:
         first_h1.decompose()
-
-    # 给 h2 增加统一 class，便于邮件内统一样式
-    for h2 in soup.find_all("h2"):
-        existing = h2.get("class", [])
-        h2["class"] = list(existing) + ["section-heading"]
 
     return "".join(str(node) for node in soup.contents).strip()
 
@@ -93,8 +88,7 @@ def normalize_content_html(content_html: str) -> str:
 def build_html(item):
     normalized_html = normalize_content_html(item["content_html"])
 
-    return f"""
-<!DOCTYPE html>
+    return f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
@@ -106,8 +100,8 @@ def build_html(item):
   body {{
     margin: 0;
     padding: 0;
-    background: #ffffff;
-    color: #111111;
+    background: transparent;
+    color: inherit;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue",
       Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
     -webkit-text-size-adjust: 100%;
@@ -116,18 +110,18 @@ def build_html(item):
 
   .page {{
     width: 100%;
-    background: #ffffff;
+    background: transparent;
   }}
 
   .wrap {{
     max-width: 680px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 18px;
   }}
 
   .header {{
-    padding: 32px 0 18px 0;
-    border-bottom: 1px solid #ececec;
+    padding: 24px 0 14px 0;
+    border-bottom: 1px solid rgba(127, 127, 127, 0.22);
   }}
 
   .title {{
@@ -135,7 +129,7 @@ def build_html(item):
     font-size: 30px;
     line-height: 1.22;
     font-weight: 700;
-    color: #111111;
+    color: inherit;
     letter-spacing: -0.02em;
   }}
 
@@ -143,14 +137,14 @@ def build_html(item):
     margin-top: 10px;
     font-size: 13px;
     line-height: 1.5;
-    color: #666666;
+    opacity: 0.68;
   }}
 
   .content {{
-    padding: 24px 0 12px 0;
+    padding: 22px 0 12px 0;
     font-size: 16px;
     line-height: 1.8;
-    color: #222222;
+    color: inherit;
     word-break: break-word;
     overflow-wrap: break-word;
   }}
@@ -159,12 +153,12 @@ def build_html(item):
     margin: 0 0 1em 0;
   }}
 
-  .content h2.section-heading {{
-    margin: 2em 0 0.8em 0;
+  .content h2 {{
+    margin: 1.9em 0 0.8em 0;
     font-size: 22px;
     line-height: 1.35;
     font-weight: 700;
-    color: #111111;
+    color: inherit;
     letter-spacing: -0.01em;
   }}
 
@@ -173,7 +167,7 @@ def build_html(item):
   .content h5,
   .content h6 {{
     margin: 1.5em 0 0.7em 0;
-    color: #111111;
+    color: inherit;
     line-height: 1.4;
   }}
 
@@ -188,30 +182,30 @@ def build_html(item):
   }}
 
   .content a {{
-    color: #0f62fe;
-    text-decoration: none;
+    color: inherit;
+    text-decoration: underline;
     word-break: break-word;
   }}
 
   .content blockquote {{
     margin: 1.2em 0;
     padding: 0 0 0 14px;
-    border-left: 3px solid #d9d9d9;
-    color: #555555;
+    border-left: 3px solid rgba(127, 127, 127, 0.35);
+    opacity: 0.9;
   }}
 
   .content hr {{
     border: none;
-    border-top: 1px solid #ececec;
+    border-top: 1px solid rgba(127, 127, 127, 0.22);
     margin: 1.6em 0;
   }}
 
   .content pre {{
     margin: 1em 0;
     padding: 14px 16px;
-    background: #f7f7f8;
-    border: 1px solid #ebebed;
-    border-radius: 10px;
+    background: rgba(127, 127, 127, 0.08);
+    border: 1px solid rgba(127, 127, 127, 0.18);
+    border-radius: 8px;
     overflow-x: auto;
     white-space: pre-wrap;
     word-break: break-word;
@@ -237,70 +231,15 @@ def build_html(item):
     height: auto !important;
     display: block;
     margin: 1em 0;
-    border-radius: 10px;
+    border-radius: 8px;
   }}
 
   .footer {{
-    padding: 18px 0 32px 0;
-    border-top: 1px solid #ececec;
+    padding: 16px 0 24px 0;
+    border-top: 1px solid rgba(127, 127, 127, 0.22);
     font-size: 12px;
     line-height: 1.7;
-    color: #777777;
-  }}
-
-  @media (prefers-color-scheme: dark) {{
-    body, .page {{
-      background: #0b0b0c !important;
-      color: #f5f5f5 !important;
-    }}
-
-    .header {{
-      border-bottom-color: #2a2a2d !important;
-    }}
-
-    .title {{
-      color: #f5f5f5 !important;
-    }}
-
-    .meta {{
-      color: #a1a1aa !important;
-    }}
-
-    .content {{
-      color: #e5e5e5 !important;
-    }}
-
-    .content h2.section-heading,
-    .content h3,
-    .content h4,
-    .content h5,
-    .content h6 {{
-      color: #f5f5f5 !important;
-    }}
-
-    .content a {{
-      color: #8ab4ff !important;
-    }}
-
-    .content blockquote {{
-      border-left-color: #3a3a3d !important;
-      color: #b8b8bd !important;
-    }}
-
-    .content hr {{
-      border-top-color: #2a2a2d !important;
-    }}
-
-    .content pre {{
-      background: #141416 !important;
-      border-color: #2a2a2d !important;
-      color: #e5e5e5 !important;
-    }}
-
-    .footer {{
-      border-top-color: #2a2a2d !important;
-      color: #9a9aa1 !important;
-    }}
+    opacity: 0.62;
   }}
 
   @media screen and (max-width: 600px) {{
@@ -309,7 +248,7 @@ def build_html(item):
     }}
 
     .header {{
-      padding: 22px 0 14px 0;
+      padding: 20px 0 12px 0;
     }}
 
     .title {{
@@ -328,13 +267,13 @@ def build_html(item):
       line-height: 1.76;
     }}
 
-    .content h2.section-heading {{
+    .content h2 {{
       font-size: 20px;
       margin-top: 1.7em;
     }}
 
     .footer {{
-      padding: 16px 0 24px 0;
+      padding: 14px 0 20px 0;
     }}
   }}
 </style>
@@ -358,8 +297,7 @@ def build_html(item):
     </div>
   </div>
 </body>
-</html>
-""".strip()
+</html>""".strip()
 
 
 def send_email(item):
