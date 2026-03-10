@@ -18,7 +18,9 @@ FROM_NAME = os.environ.get("FROM_NAME", "RSS Bot")
 FORCE_SEND = os.environ.get("FORCE_SEND", "false").lower() == "true"
 
 
-def strip_html(html):
+def strip_html(html: str) -> str:
+    if not html:
+        return ""
     html = re.sub(r"<script[\s\S]*?</script>", "", html, flags=re.I)
     html = re.sub(r"<style[\s\S]*?</style>", "", html, flags=re.I)
     text = re.sub(r"<[^>]+>", "", html)
@@ -42,9 +44,8 @@ def save_state(state):
 
 def fetch_latest_item():
     feed = feedparser.parse(FEED_URL)
-
     if not feed.entries:
-        raise RuntimeError("RSS 解析失败")
+        raise RuntimeError("RSS 解析失败：没有读取到条目")
 
     entry = feed.entries[0]
 
@@ -53,12 +54,11 @@ def fetch_latest_item():
     published = entry.get("published", "").strip()
 
     content_html = ""
-
-    if entry.get("content"):
-        content_html = entry["content"][0]["value"]
+    if entry.get("content") and isinstance(entry.get("content"), list):
+        content_html = entry["content"][0].get("value", "") or ""
 
     if not content_html:
-        content_html = entry.get("summary", "")
+        content_html = entry.get("summary", "") or entry.get("description", "") or ""
 
     summary_text = strip_html(content_html)
 
@@ -67,283 +67,304 @@ def fetch_latest_item():
         "link": link,
         "published": published,
         "content_html": content_html,
-        "summary_text": summary_text
+        "summary_text": summary_text,
     }
 
 
-def split_content_into_sections(content_html):
+def normalize_content_html(content_html: str) -> str:
     soup = BeautifulSoup(content_html, "html.parser")
 
     for tag in soup(["script", "style"]):
         tag.decompose()
 
-    headings = soup.find_all("h2")
+    # 删除正文里可能重复出现的 h1，避免和邮件主标题冲突
+    first_h1 = soup.find("h1")
+    if first_h1:
+        first_h1.decompose()
 
-    if not headings:
-        return [{"title": "", "html": content_html}]
+    # 给 h2 增加统一 class，便于邮件内统一样式
+    for h2 in soup.find_all("h2"):
+        existing = h2.get("class", [])
+        h2["class"] = list(existing) + ["section-heading"]
 
-    sections = []
-
-    current_title = ""
-    current_nodes = []
-    intro_nodes = []
-
-    seen_first = False
-
-    for node in soup.contents:
-
-        if getattr(node, "name", None) == "h2":
-
-            if not seen_first:
-                seen_first = True
-
-                intro_html = "".join(str(n) for n in intro_nodes)
-
-                if strip_html(intro_html):
-                    sections.append({
-                        "title": "",
-                        "html": intro_html
-                    })
-
-            else:
-                sections.append({
-                    "title": current_title,
-                    "html": "".join(str(n) for n in current_nodes)
-                })
-
-            current_title = node.get_text(strip=True)
-            current_nodes = []
-
-        else:
-            if seen_first:
-                current_nodes.append(node)
-            else:
-                intro_nodes.append(node)
-
-    if current_nodes:
-        sections.append({
-            "title": current_title,
-            "html": "".join(str(n) for n in current_nodes)
-        })
-
-    return sections
-
-
-def build_sections_html(sections):
-    parts = []
-
-    for i, sec in enumerate(sections):
-
-        title_html = ""
-
-        if sec["title"]:
-            title_html = f'<h2 class="section-title">{sec["title"]}</h2>'
-
-        divider = ""
-
-        if i != len(sections) - 1:
-            divider = '<div class="section-divider"></div>'
-
-        parts.append(
-            f"""
-            <div class="section-block">
-                {title_html}
-                <div class="content-body">
-                    {sec["html"]}
-                </div>
-            </div>
-            {divider}
-            """
-        )
-
-    return "".join(parts)
+    return "".join(str(node) for node in soup.contents).strip()
 
 
 def build_html(item):
+    normalized_html = normalize_content_html(item["content_html"])
 
-    sections = split_content_into_sections(item["content_html"])
-
-    intro_html = ""
-    content_sections = sections
-
-    if sections and sections[0]["title"] == "":
-        intro_html = sections[0]["html"]
-        content_sections = sections[1:]
-
-    sections_html = build_sections_html(content_sections)
-
-    html = f"""
-<div class="page">
-<div class="wrap">
-
-<div class="hero-card">
-<h1 class="title">{item['title']}</h1>
-<div class="meta">发布时间：{item['published']}</div>
-<div class="content-body hero-body">
-{intro_html}
-</div>
-</div>
-
-<div class="content-card">
-{sections_html}
-</div>
-
-<div class="footer-card">
-<div class="footer">
-由 GitHub Actions + Resend 自动发送<br>
-来源：{FEED_URL}
-</div>
-</div>
-
-</div>
-</div>
-
+    return f"""
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>{item["title"]}</title>
 <style>
+  body {{
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+    color: #111111;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue",
+      Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }}
 
-body {{
-margin:0;
-padding:0;
-font-family:"Segoe UI","Microsoft YaHei",Arial,sans-serif;
-background:#f3f3f3;
-}}
+  .page {{
+    width: 100%;
+    background: #ffffff;
+  }}
 
-.page {{
-padding:14px 0;
-}}
+  .wrap {{
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }}
 
-.wrap {{
-max-width:760px;
-margin:auto;
-padding:0 12px;
-}}
+  .header {{
+    padding: 32px 0 18px 0;
+    border-bottom: 1px solid #ececec;
+  }}
 
-.hero-card,
-.content-card,
-.footer-card {{
-background:#ffffff;
-border:1px solid #e7e7e7;
-border-radius:16px;
-padding:18px 16px;
-margin-bottom:10px;
-box-shadow:0 1px 3px rgba(0,0,0,0.05);
-}}
+  .title {{
+    margin: 0;
+    font-size: 30px;
+    line-height: 1.22;
+    font-weight: 700;
+    color: #111111;
+    letter-spacing: -0.02em;
+  }}
 
-.title {{
-margin:0 0 6px 0;
-font-size:24px;
-font-weight:700;
-color:#1b1b1b;
-}}
+  .meta {{
+    margin-top: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #666666;
+  }}
 
-.meta {{
-font-size:12px;
-color:#666;
-margin-bottom:12px;
-}}
+  .content {{
+    padding: 24px 0 12px 0;
+    font-size: 16px;
+    line-height: 1.8;
+    color: #222222;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }}
 
-.section-title {{
-font-size:20px;
-margin:0 0 10px 0;
-font-weight:700;
-}}
+  .content p {{
+    margin: 0 0 1em 0;
+  }}
 
-.section-divider {{
-height:1px;
-background:#ececec;
-margin:16px 0;
-}}
+  .content h2.section-heading {{
+    margin: 2em 0 0.8em 0;
+    font-size: 22px;
+    line-height: 1.35;
+    font-weight: 700;
+    color: #111111;
+    letter-spacing: -0.01em;
+  }}
 
-.content-body {{
-font-size:15px;
-line-height:1.8;
-color:#2f2f2f;
-}}
+  .content h3,
+  .content h4,
+  .content h5,
+  .content h6 {{
+    margin: 1.5em 0 0.7em 0;
+    color: #111111;
+    line-height: 1.4;
+  }}
 
-.footer {{
-font-size:12px;
-color:#6a6a6a;
-}}
+  .content ul,
+  .content ol {{
+    margin: 0 0 1em 0;
+    padding-left: 1.35em;
+  }}
 
-img {{
-max-width:100%!important;
-height:auto!important;
-display:block;
-border-radius:10px;
-margin:12px 0;
-}}
+  .content li {{
+    margin-bottom: 0.35em;
+  }}
 
-pre {{
-background:#f7f7f7!important;
-border:1px solid #e6e6e6!important;
-border-radius:10px!important;
-padding:12px!important;
-overflow:auto;
-}}
+  .content a {{
+    color: #0f62fe;
+    text-decoration: none;
+    word-break: break-word;
+  }}
 
-blockquote {{
-border-left:3px solid #b9d6f2!important;
-padding-left:12px!important;
-color:#5d5d5d!important;
-}}
+  .content blockquote {{
+    margin: 1.2em 0;
+    padding: 0 0 0 14px;
+    border-left: 3px solid #d9d9d9;
+    color: #555555;
+  }}
 
-@media (prefers-color-scheme: dark) {{
+  .content hr {{
+    border: none;
+    border-top: 1px solid #ececec;
+    margin: 1.6em 0;
+  }}
 
-body {{
-background:#0b0f14!important;
-}}
+  .content pre {{
+    margin: 1em 0;
+    padding: 14px 16px;
+    background: #f7f7f8;
+    border: 1px solid #ebebed;
+    border-radius: 10px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 14px;
+    line-height: 1.7;
+  }}
 
-.hero-card,
-.content-card,
-.footer-card {{
-background:#1b232d!important;
-border:1px solid #2c3642!important;
-}}
+  .content code {{
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    word-break: break-word;
+  }}
 
-.title,
-.section-title {{
-color:#f5f7fa!important;
-}}
+  .content table {{
+    width: 100% !important;
+    max-width: 100% !important;
+    border-collapse: collapse !important;
+    table-layout: fixed !important;
+    margin: 1em 0;
+  }}
 
-.meta {{
-color:#aab4c0!important;
-}}
+  .content img {{
+    max-width: 100% !important;
+    height: auto !important;
+    display: block;
+    margin: 1em 0;
+    border-radius: 10px;
+  }}
 
-.section-divider {{
-background:#2c3642!important;
-}}
+  .footer {{
+    padding: 18px 0 32px 0;
+    border-top: 1px solid #ececec;
+    font-size: 12px;
+    line-height: 1.7;
+    color: #777777;
+  }}
 
-.content-body {{
-color:#dce3ea!important;
-}}
+  @media (prefers-color-scheme: dark) {{
+    body, .page {{
+      background: #0b0b0c !important;
+      color: #f5f5f5 !important;
+    }}
 
-.footer {{
-color:#97a3af!important;
-}}
+    .header {{
+      border-bottom-color: #2a2a2d !important;
+    }}
 
-pre {{
-background:#111720!important;
-border-color:#2c3642!important;
-color:#dce3ea!important;
-}}
+    .title {{
+      color: #f5f5f5 !important;
+    }}
 
-blockquote {{
-border-left-color:#4f89c6!important;
-color:#b9c3cf!important;
-}}
+    .meta {{
+      color: #a1a1aa !important;
+    }}
 
-}}
+    .content {{
+      color: #e5e5e5 !important;
+    }}
 
+    .content h2.section-heading,
+    .content h3,
+    .content h4,
+    .content h5,
+    .content h6 {{
+      color: #f5f5f5 !important;
+    }}
+
+    .content a {{
+      color: #8ab4ff !important;
+    }}
+
+    .content blockquote {{
+      border-left-color: #3a3a3d !important;
+      color: #b8b8bd !important;
+    }}
+
+    .content hr {{
+      border-top-color: #2a2a2d !important;
+    }}
+
+    .content pre {{
+      background: #141416 !important;
+      border-color: #2a2a2d !important;
+      color: #e5e5e5 !important;
+    }}
+
+    .footer {{
+      border-top-color: #2a2a2d !important;
+      color: #9a9aa1 !important;
+    }}
+  }}
+
+  @media screen and (max-width: 600px) {{
+    .wrap {{
+      padding: 0 14px;
+    }}
+
+    .header {{
+      padding: 22px 0 14px 0;
+    }}
+
+    .title {{
+      font-size: 24px;
+      line-height: 1.28;
+    }}
+
+    .meta {{
+      margin-top: 8px;
+      font-size: 12px;
+    }}
+
+    .content {{
+      padding: 18px 0 10px 0;
+      font-size: 15px;
+      line-height: 1.76;
+    }}
+
+    .content h2.section-heading {{
+      font-size: 20px;
+      margin-top: 1.7em;
+    }}
+
+    .footer {{
+      padding: 16px 0 24px 0;
+    }}
+  }}
 </style>
-"""
-    return html
+</head>
+<body>
+  <div class="page">
+    <div class="wrap">
+      <div class="header">
+        <h1 class="title">{item["title"]}</h1>
+        <div class="meta">发布时间：{item["published"]}</div>
+      </div>
+
+      <div class="content">
+        {normalized_html}
+      </div>
+
+      <div class="footer">
+        由 GitHub Actions + Resend 自动发送。<br>
+        来源：{FEED_URL}
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+""".strip()
 
 
 def send_email(item):
-
     subject = f"阮一峰更新｜{item['title']}"
-
     html_body = build_html(item)
-
     text_body = f"""{item['title']}
 
 发布时间：{item['published']}
@@ -354,8 +375,18 @@ def send_email(item):
 {item['link']}
 """
 
+    from_email = FROM_EMAIL.strip()
+    from_name = FROM_NAME.strip()
+
+    if "<" in from_email or ">" in from_email:
+        from_value = from_email
+    elif from_name:
+        from_value = f"{from_name} <{from_email}>"
+    else:
+        from_value = from_email
+
     payload = {
-        "from": f"{FROM_NAME} <{FROM_EMAIL}>",
+        "from": from_value,
         "to": [TO_EMAIL],
         "subject": subject,
         "html": html_body,
@@ -368,28 +399,31 @@ def send_email(item):
             "Authorization": f"Bearer {RESEND_API_KEY}",
             "Content-Type": "application/json"
         },
-        json=payload
+        json=payload,
+        timeout=30
     )
 
+    print(f"Resend response: {resp.status_code} {resp.text}")
+
     if not resp.ok:
-        raise RuntimeError(resp.text)
+        raise RuntimeError(f"Resend 发信失败: {resp.status_code} {resp.text}")
 
 
 def main():
-
     latest = fetch_latest_item()
     state = load_state()
+
+    if not latest["link"]:
+        print("No link found.")
+        return 1
 
     if not FORCE_SEND and latest["link"] == state.get("last_link"):
         print("No new item")
         return 0
 
     send_email(latest)
-
     save_state({"last_link": latest["link"]})
-
-    print("Email sent")
-
+    print("Email sent and state updated.")
     return 0
 
 
