@@ -74,8 +74,8 @@ def build_html(item: dict) -> str:
     content_html = item["content_html"]
 
     return f"""
-<div class="bg">
-  <div class="container">
+<div class="page">
+  <div class="wrap">
     <div class="card">
 
       <h1 class="title">
@@ -108,59 +108,57 @@ body {{
   margin: 0;
   padding: 0;
   font-family: "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", Arial, sans-serif;
+  background: #f5f5f5;
+}}
+
+.page {{
   background: #f3f3f3;
+  padding: 40px 0;
 }}
 
-.bg {{
-  padding: 36px 0;
-  background:
-    radial-gradient(circle at top left, #f8fbff 0%, #f3f3f3 42%, #efefef 100%);
-}}
-
-.container {{
-  max-width: 780px;
-  margin: auto;
-  padding: 0 18px;
+.wrap {{
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 0 20px;
 }}
 
 .card {{
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(250,250,250,0.96) 100%);
-  border: 1px solid rgba(255,255,255,0.72);
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
   border-radius: 24px;
-  padding: 34px 30px;
+  padding: 36px 32px;
   overflow: hidden;
   box-shadow:
-    0 1px 2px rgba(0,0,0,0.04),
-    0 8px 28px rgba(0,0,0,0.08);
+    0 2px 6px rgba(0, 0, 0, 0.04),
+    0 12px 32px rgba(0, 0, 0, 0.08);
 }}
 
 .title {{
-  margin: 0 0 10px 0;
-  font-size: 31px;
-  line-height: 1.28;
+  margin: 0 0 12px 0;
+  font-size: 30px;
+  line-height: 1.3;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: #1f1f1f;
+  color: #1b1b1b;
 }}
 
 .meta {{
   font-size: 13px;
   line-height: 20px;
-  color: #5f5f5f;
+  color: #616161;
   margin-bottom: 28px;
 }}
 
 .divider {{
   height: 1px;
-  background: linear-gradient(90deg, rgba(0,0,0,0.04), rgba(0,0,0,0.08), rgba(0,0,0,0.04));
+  background: #ececec;
   margin-bottom: 28px;
 }}
 
 .content {{
   font-size: 16px;
   line-height: 1.9;
-  color: #2d2d2d;
+  color: #2f2f2f;
   word-break: break-word;
   overflow-wrap: break-word;
   max-width: 100%;
@@ -168,40 +166,38 @@ body {{
 
 .footer-divider {{
   height: 1px;
-  background: linear-gradient(90deg, rgba(0,0,0,0.04), rgba(0,0,0,0.08), rgba(0,0,0,0.04));
-  margin: 34px 0 20px 0;
+  background: #ececec;
+  margin: 36px 0 20px 0;
 }}
 
 .footer {{
   font-size: 12px;
   line-height: 20px;
-  color: #6b6b6b;
+  color: #6a6a6a;
 }}
 
 img {{
   max-width: 100% !important;
   height: auto !important;
   display: block;
-  border-radius: 16px;
+  border-radius: 14px;
   margin: 16px 0;
 }}
 
 table {{
-  max-width: 100% !important;
   width: 100% !important;
+  max-width: 100% !important;
   border-collapse: collapse !important;
-  background: rgba(255,255,255,0.6);
-  border-radius: 14px;
-  overflow: hidden;
+  table-layout: fixed !important;
 }}
 
 pre {{
   white-space: pre-wrap !important;
   word-break: break-word !important;
   overflow-x: auto !important;
-  background: rgba(248,248,248,0.92) !important;
-  border: 1px solid rgba(0,0,0,0.06) !important;
-  border-radius: 16px !important;
+  background: #f7f7f7 !important;
+  border: 1px solid #e6e6e6 !important;
+  border-radius: 14px !important;
   padding: 16px !important;
   font-size: 14px !important;
   line-height: 1.75 !important;
@@ -214,10 +210,9 @@ code {{
 
 blockquote {{
   margin: 16px 0 !important;
-  padding: 10px 0 10px 16px !important;
-  border-left: 3px solid rgba(0,120,212,0.32) !important;
-  color: #5a5a5a !important;
-  background: transparent !important;
+  padding: 8px 0 8px 16px !important;
+  border-left: 3px solid #b9d6f2 !important;
+  color: #5d5d5d !important;
 }}
 
 p {{
@@ -225,21 +220,21 @@ p {{
 }}
 
 h1, h2, h3, h4, h5, h6 {{
-  color: #1f1f1f !important;
+  color: #1b1b1b !important;
   line-height: 1.45 !important;
   margin-top: 1.35em !important;
   margin-bottom: 0.7em !important;
 }}
 
 a {{
-  color: #005fb8 !important;
+  color: #0b57a3 !important;
   text-decoration: none !important;
   word-break: break-word !important;
 }}
 
 hr {{
   border: none !important;
-  border-top: 1px solid rgba(0,0,0,0.08) !important;
+  border-top: 1px solid #e6e6e6 !important;
   margin: 24px 0 !important;
 }}
 
@@ -254,69 +249,63 @@ li {{
 
 @media (prefers-color-scheme: dark) {{
   body {{
-    background: #0f1114;
+    background: #0a0d12 !important;
   }}
 
-  .bg {{
-    background:
-      radial-gradient(circle at top left, #1d2430 0%, #111318 40%, #0f1114 100%);
+  .page {{
+    background: #0f131a !important;
   }}
 
   .card {{
-    background:
-      linear-gradient(180deg, rgba(36,40,48,0.92) 0%, rgba(27,30,36,0.96) 100%);
-    border: 1px solid rgba(255,255,255,0.08);
+    background: #1a212b !important;
+    border: 1px solid #2b3440 !important;
     box-shadow:
-      0 1px 2px rgba(0,0,0,0.25),
-      0 14px 36px rgba(0,0,0,0.32);
+      0 2px 8px rgba(0, 0, 0, 0.28),
+      0 20px 44px rgba(0, 0, 0, 0.42) !important;
   }}
 
   .title {{
-    color: #f5f5f5;
+    color: #f5f7fa !important;
   }}
 
   .meta {{
-    color: #b8b8b8;
-  }}
-
-  .content {{
-    color: #e5e5e5;
+    color: #aab4c0 !important;
   }}
 
   .divider,
   .footer-divider {{
-    background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.10), rgba(255,255,255,0.04));
+    background: #2b3440 !important;
+  }}
+
+  .content {{
+    color: #dce3ea !important;
   }}
 
   .footer {{
-    color: #a7a7a7;
+    color: #97a3af !important;
   }}
 
   pre {{
-    background: rgba(17,20,26,0.96) !important;
-    border-color: rgba(255,255,255,0.08) !important;
-    color: #e5e5e5 !important;
+    background: #111720 !important;
+    border-color: #2b3440 !important;
+    color: #dce3ea !important;
   }}
 
   blockquote {{
-    border-left-color: rgba(122,184,255,0.45) !important;
-    color: #c6c6c6 !important;
+    border-left-color: #4f89c6 !important;
+    color: #b9c3cf !important;
   }}
 
   h1, h2, h3, h4, h5, h6 {{
-    color: #f5f5f5 !important;
+    color: #f5f7fa !important;
   }}
 
   a {{
-    color: #8cc8ff !important;
+    color: #8ec5ff !important;
   }}
 
   hr {{
-    border-top-color: rgba(255,255,255,0.08) !important;
-  }}
-
-  table {{
-    background: rgba(255,255,255,0.02) !important;
+    border-top-color: #2b3440 !important;
   }}
 }}
 </style>
