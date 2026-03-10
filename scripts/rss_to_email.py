@@ -155,9 +155,16 @@ def build_html(item):
 
     sections = split_content_into_sections(item["content_html"])
 
+    intro_html = ""
+    content_sections = sections
+
+    if sections and sections[0]["title"] == "":
+        intro_html = sections[0]["html"]
+        content_sections = sections[1:]
+
     sections_html = "".join(
         build_section_card(sec["title"], sec["html"])
-        for sec in sections
+        for sec in content_sections
     )
 
     return f"""
@@ -173,6 +180,10 @@ def build_html(item):
 
 <div class="meta">
 发布时间：{item["published"]}
+</div>
+
+<div class="content-body">
+{intro_html}
 </div>
 
 </div>
