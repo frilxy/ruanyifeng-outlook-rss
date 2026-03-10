@@ -74,51 +74,180 @@ def build_html(item: dict) -> str:
     content_html = item["content_html"]
 
     return f"""
-<div style="margin:0;padding:24px 0;background:#f6f8fb;">
-  <div style="max-width:720px;margin:0 auto;padding:0 16px;">
-    <div style="background:#ffffff;border:1px solid #e8edf3;border-radius:16px;padding:28px 24px;overflow:hidden;">
-      <h1 style="margin:0 0 12px 0;font-size:26px;line-height:1.35;color:#101828;font-weight:700;">
+<div class="bg">
+  <div class="container">
+    <div class="card">
+
+      <div class="tag">RSS 更新</div>
+
+      <h1 class="title">
         {item["title"]}
       </h1>
 
-      <div style="font-size:13px;line-height:20px;color:#667085;margin-bottom:20px;">
+      <div class="meta">
         发布时间：{item["published"]}
       </div>
 
-      <div style="font-size:16px;line-height:1.8;color:#344054;word-break:break-word;overflow-wrap:break-word;">
+      <div class="divider"></div>
+
+      <div class="content">
         {content_html}
       </div>
 
-      <hr style="border:none;border-top:1px solid #eaecf0;margin:28px 0;">
+      <div class="footer-divider"></div>
 
-      <div style="font-size:12px;line-height:20px;color:#667085;">
-        这封邮件由 GitHub Actions + Resend 自动发送。<br>
-        RSS 地址：{FEED_URL}
+      <div class="footer">
+        由 GitHub Actions + Resend 自动发送<br>
+        来源：{FEED_URL}
       </div>
+
     </div>
   </div>
 </div>
+
 <style>
-  img {{
-    max-width: 100% !important;
-    height: auto !important;
-    display: block;
+
+body {{
+  margin:0;
+  padding:0;
+  font-family:"Segoe UI","Microsoft YaHei",Arial,sans-serif;
+}}
+
+.bg {{
+  background:#f3f2f1;
+  padding:32px 0;
+}}
+
+.container {{
+  max-width:760px;
+  margin:auto;
+  padding:0 16px;
+}}
+
+.card {{
+  background:#ffffff;
+  border:1px solid #edebe9;
+  border-radius:20px;
+  padding:32px 28px;
+}}
+
+.tag {{
+  display:inline-block;
+  font-size:12px;
+  color:#605e5c;
+  background:#f3f2f1;
+  border:1px solid #edebe9;
+  border-radius:999px;
+  padding:4px 10px;
+  margin-bottom:16px;
+}}
+
+.title {{
+  margin:0 0 10px 0;
+  font-size:30px;
+  font-weight:700;
+  color:#201f1e;
+}}
+
+.meta {{
+  font-size:13px;
+  color:#605e5c;
+  margin-bottom:28px;
+}}
+
+.divider {{
+  height:1px;
+  background:#edebe9;
+  margin-bottom:28px;
+}}
+
+.content {{
+  font-size:16px;
+  line-height:1.9;
+  color:#323130;
+}}
+
+.footer-divider {{
+  height:1px;
+  background:#edebe9;
+  margin:32px 0 20px 0;
+}}
+
+.footer {{
+  font-size:12px;
+  color:#605e5c;
+}}
+
+img {{
+  max-width:100% !important;
+  height:auto !important;
+  border-radius:10px;
+}}
+
+pre {{
+  background:#f8f8f8;
+  border:1px solid #edebe9;
+  border-radius:12px;
+  padding:14px;
+  overflow:auto;
+}}
+
+blockquote {{
+  border-left:3px solid #c8c6c4;
+  padding-left:12px;
+  color:#605e5c;
+}}
+
+a {{
+  color:#0f6cbd;
+  text-decoration:none;
+}}
+
+@media (prefers-color-scheme: dark) {{
+
+  .bg {{
+    background:#1b1a19;
   }}
-  table {{
-    max-width: 100% !important;
-    width: 100% !important;
+
+  .card {{
+    background:#252423;
+    border-color:#3b3a39;
   }}
+
+  .tag {{
+    background:#323130;
+    border-color:#3b3a39;
+    color:#d2d0ce;
+  }}
+
+  .title {{
+    color:#ffffff;
+  }}
+
+  .meta {{
+    color:#c8c6c4;
+  }}
+
+  .content {{
+    color:#f3f2f1;
+  }}
+
+  .divider,
+  .footer-divider {{
+    background:#3b3a39;
+  }}
+
+  .footer {{
+    color:#c8c6c4;
+  }}
+
   pre {{
-    white-space: pre-wrap !important;
-    word-break: break-word !important;
-    overflow-x: auto !important;
+    background:#1f1f1f;
+    border-color:#3b3a39;
   }}
-  code {{
-    word-break: break-word !important;
-  }}
-  a {{
-    word-break: break-word !important;
-  }}
+
+}}
+
 </style>
 """.strip()
 
