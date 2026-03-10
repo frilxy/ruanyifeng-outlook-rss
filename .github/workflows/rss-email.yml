@@ -1,4 +1,4 @@
-name: RSS to Outlook via Resend
+name: RSS to Email via Resend
 
 on:
   schedule:
