@@ -6,6 +6,15 @@ on:
     - cron: "0 4 * * 5"
     - cron: "0 8 * * 5"
   workflow_dispatch:
+    inputs:
+      force_send:
+        description: "是否强制发送最新一篇"
+        required: false
+        default: "false"
+
+concurrency:
+  group: ruanyifeng-rss-state
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -17,6 +26,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -32,6 +43,7 @@ jobs:
           TO_EMAIL: ${{ secrets.TO_EMAIL }}
           FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
           FROM_NAME: ${{ secrets.FROM_NAME }}
+          FORCE_SEND: ${{ github.event.inputs.force_send || 'false' }}
         run: python scripts/rss_to_email.py
 
       - name: Commit updated state
@@ -39,5 +51,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/last_sent.json
-          git diff --cached --quiet || git commit -m "Update RSS state"
-          git push
+          git diff --cached --quiet && exit 0
+          git commit -m "Update RSS state"
+          git pull --rebase origin main
+          git push origin main
