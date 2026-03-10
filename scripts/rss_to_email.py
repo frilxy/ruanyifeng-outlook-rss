@@ -1,25 +1,18 @@
 import json
 import os
 import re
-import smtplib
-import ssl
 import sys
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from pathlib import Path
 
 import feedparser
-
+import requests
 
 FEED_URL = "https://feeds.feedburner.com/ruanyifeng"
 STATE_FILE = Path("data/last_sent.json")
 
-SMTP_SERVER = "smtp-mail.outlook.com"
-SMTP_PORT = 587
-
-OUTLOOK_EMAIL = os.environ["OUTLOOK_EMAIL"]
-OUTLOOK_APP_PASSWORD = os.environ["OUTLOOK_APP_PASSWORD"]
+RESEND_API_KEY = os.environ["RESEND_API_KEY"]
 TO_EMAIL = os.environ["TO_EMAIL"]
+FROM_EMAIL = os.environ["FROM_EMAIL"]
 FROM_NAME = os.environ.get("FROM_NAME", "RSS Bot")
 
 
@@ -49,19 +42,16 @@ def save_state(state: dict) -> None:
 
 def fetch_latest_item() -> dict:
     feed = feedparser.parse(FEED_URL)
-
     if not feed.entries:
         raise RuntimeError("RSS 解析失败：没有读取到条目")
 
     entry = feed.entries[0]
-
     title = entry.get("title", "(无标题)").strip()
     link = entry.get("link", "").strip()
     published = entry.get("published", "").strip()
 
     summary_html = entry.get("summary", "") or entry.get("description", "")
     summary = strip_html(summary_html)
-
     if len(summary) > 320:
         summary = summary[:320].rstrip() + "…"
 
@@ -74,11 +64,6 @@ def fetch_latest_item() -> dict:
 
 
 def build_html(item: dict) -> str:
-    title = item["title"]
-    link = item["link"]
-    published = item["published"]
-    summary = item["summary"]
-
     return f"""
 <div style="margin:0;padding:0;background:#f6f8fb;">
   <div style="max-width:720px;margin:0 auto;padding:24px 16px;">
@@ -88,15 +73,15 @@ def build_html(item: dict) -> str:
       </div>
 
       <h1 style="margin:0 0 12px 0;font-size:26px;line-height:1.35;color:#101828;font-weight:700;">
-        {title}
+        {item["title"]}
       </h1>
 
       <div style="font-size:13px;line-height:20px;color:#667085;margin-bottom:20px;">
-        发布时间：{published}
+        发布时间：{item["published"]}
       </div>
 
       <div style="margin-bottom:22px;">
-        <a href="{link}"
+        <a href="{item["link"]}"
            style="display:inline-block;background:#111827;color:#ffffff;text-decoration:none;
                   padding:10px 16px;border-radius:10px;font-size:14px;">
           阅读原文
@@ -104,13 +89,13 @@ def build_html(item: dict) -> str:
       </div>
 
       <div style="font-size:16px;line-height:1.8;color:#344054;">
-        {summary}
+        {item["summary"]}
       </div>
 
       <hr style="border:none;border-top:1px solid #eaecf0;margin:28px 0;">
 
       <div style="font-size:12px;line-height:20px;color:#667085;">
-        这封邮件由 GitHub Actions 自动发送到 Outlook。<br>
+        这封邮件由 GitHub Actions + Resend 自动发送。<br>
         RSS 地址：{FEED_URL}
       </div>
     </div>
@@ -122,23 +107,33 @@ def build_html(item: dict) -> str:
 def send_email(item: dict) -> None:
     subject = f"阮一峰更新｜{item['title']}"
     html_body = build_html(item)
+    text_body = (
+        f"{item['title']}\n\n"
+        f"发布时间：{item['published']}\n\n"
+        f"摘要：{item['summary']}\n\n"
+        f"原文链接：{item['link']}"
+    )
 
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"] = f"{FROM_NAME} <{OUTLOOK_EMAIL}>"
-    msg["To"] = TO_EMAIL
+    payload = {
+        "from": f"{FROM_NAME} <{FROM_EMAIL}>",
+        "to": [TO_EMAIL],
+        "subject": subject,
+        "html": html_body,
+        "text": text_body,
+    }
 
-    text_body = f"{item['title']}\n\n发布时间：{item['published']}\n\n摘要：{item['summary']}\n\n原文链接：{item['link']}"
-    msg.attach(MIMEText(text_body, "plain", "utf-8"))
-    msg.attach(MIMEText(html_body, "html", "utf-8"))
+    resp = requests.post(
+        "https://api.resend.com/emails",
+        headers={
+            "Authorization": f"Bearer {RESEND_API_KEY}",
+            "Content-Type": "application/json",
+        },
+        json=payload,
+        timeout=30,
+    )
 
-    context = ssl.create_default_context()
-    with smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=30) as server:
-        server.ehlo()
-        server.starttls(context=context)
-        server.ehlo()
-        server.login(OUTLOOK_EMAIL, OUTLOOK_APP_PASSWORD)
-        server.sendmail(OUTLOOK_EMAIL, [TO_EMAIL], msg.as_string())
+    if not resp.ok:
+        raise RuntimeError(f"Resend 发信失败: {resp.status_code} {resp.text}")
 
 
 def main() -> int:
