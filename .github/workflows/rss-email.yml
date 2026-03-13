@@ -2,10 +2,10 @@ name: RSS to Email via Resend
 
 on:
   schedule:
-    # 周五中午检查
-    - cron: "0 4 * * 5"
-    # 周五晚上再检查一次
-    - cron: "0 10 * * 5"
+    # 周五上午检查
+    - cron: "0 9 * * 5"
+    # 周五下午再检查一次
+    - cron: "0 14 * * 5"
 
   workflow_dispatch:
 
